@@ -12,7 +12,7 @@ npm run build    # outputs to dist/
 
 ## Edit content
 
-All copy, products and occasions live at the top of `src/pages/index.astro`. Items marked `TODO` are placeholders waiting on real details (prices, shop link, contact email). The promo video lives in `public/video/`.
+All copy, products and occasions live at the top of `src/pages/index.astro`. Prices and sizes are in the `products` list. The basket runs in the browser only (no backend): "Send order enquiry" emails the order. Items marked `TODO` (contact and orders email) are placeholders. The promo video lives in `public/video/`.
 
 ## Deploy
 

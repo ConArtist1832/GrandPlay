@@ -56,7 +56,10 @@ const contactEmail = 'rania@hy-pro.co.uk'; // TODO: real contact email
       </a>
       <nav aria-label="Main">
         <a class="pill pill-glass" href="#games">Games</a>
-        <a class="pill pill-glass" href={`${base}play/`}>Play</a>
+        <span class="play-wrap">
+          <a class="pill pill-glass" href={`${base}play/`}>Play</a>
+          <a class="discount-tag" href={`${base}play/`}>Discounts!</a>
+        </span>
         <button type="button" class="pill pill-glass basket-btn" data-basket-open aria-label="Open basket">Basket <span class="basket-count" data-basket-count>0</span></button>
       </nav>
     </header>
@@ -64,7 +67,7 @@ const contactEmail = 'rania@hy-pro.co.uk'; // TODO: real contact email
     <main id="main">
       <!-- Hero: full-bleed video, headline bottom-left -->
       <section class="hero">
-        <video autoplay muted loop playsinline preload="metadata" poster={`${base}video/poster.jpg`} aria-hidden="true">
+        <video autoplay muted loop playsinline preload="auto" poster={`${base}video/poster.jpg`} aria-hidden="true" disablepictureinpicture>
           <source src={`${base}video/grandplay.mp4`} type="video/mp4" />
         </video>
         <div class="hero-shade" aria-hidden="true"></div>
@@ -120,6 +123,16 @@ const contactEmail = 'rania@hy-pro.co.uk'; // TODO: real contact email
         </ol>
       </section>
 
+      <!-- Play for discounts -->
+      <section class="wrap play-promo" id="play">
+        <div class="split-head">
+          <h2>Bowl a strike, win a discount</h2>
+          <p>Try our garden skittles game. Two clicks: one for your aim, one for your power. Knock all nine pins down to reveal a discount code.</p>
+        </div>
+        <a class="pill pill-solid" href={`${base}play/`}>Play garden skittles <span aria-hidden="true">→</span></a>
+        <p class="small play-note">Preview: codes shown in the game are demo codes and can't be used yet.</p>
+      </section>
+
       <!-- Video -->
       <section class="wrap" id="video">
         <div class="split-head">
@@ -158,16 +171,6 @@ const contactEmail = 'rania@hy-pro.co.uk'; // TODO: real contact email
       </section>
 
       <!-- Join band -->
-      <!-- Play for discounts -->
-      <section class="wrap play-promo" id="play">
-        <div class="split-head">
-          <h2>Bowl a strike, win a discount</h2>
-          <p>Try our garden skittles game. Two clicks: one for your aim, one for your power. Knock all nine pins down to reveal a discount code.</p>
-        </div>
-        <a class="pill pill-solid" href={`${base}play/`}>Play garden skittles <span aria-hidden="true">→</span></a>
-        <p class="small play-note">Preview: codes shown in the game are demo codes and can't be used yet.</p>
-      </section>
-
       <section class="band" id="contact">
         <Image src={moonTeam} alt="" class="band-bg" widths={[800, 1600]} sizes="100vw" />
         <div class="band-inner">
@@ -316,6 +319,10 @@ const contactEmail = 'rania@hy-pro.co.uk'; // TODO: real contact email
       .scroll-cue svg { filter: drop-shadow(0 1px 6px rgb(0 0 0 / .35)); }
       .scroll-cue .chev { animation: chev 1.6s ease-in-out infinite; }
       @keyframes chev { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(6px); opacity: 1; } }
+      .play-wrap { position: relative; display: inline-flex; }
+      .discount-tag { position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%); background: #2bb3b1; color: #fff; font-size: .78rem; font-weight: 700; letter-spacing: .02em; padding: 5px 10px; border-radius: 999px; white-space: nowrap; text-decoration: none; box-shadow: 0 4px 14px rgb(0 0 0 / .2); animation: tag-bob 1.6s ease-in-out infinite; }
+      .discount-tag::before { content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); border: 7px solid transparent; border-bottom-color: #2bb3b1; }
+      @keyframes tag-bob { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 4px); } }
       .play-promo { display: grid; gap: 16px; justify-items: start; }
       .play-promo .split-head { margin-bottom: 8px; width: 100%; }
       .scroll-dot { animation: scroll-dot 1.6s ease-in-out infinite; }
@@ -379,12 +386,13 @@ const contactEmail = 'rania@hy-pro.co.uk'; // TODO: real contact email
         .steps li { padding-bottom: 32px; }
         .game img { max-width: 280px; }
         .brand span { display: none; }
+        .scroll-cue span { display: none; }
 
       }
       @media (prefers-reduced-motion: reduce) {
         html { scroll-behavior: auto; }
         .pill, .drawer { transition: none; }
-        .scroll-dot, .scroll-cue .chev { animation: none; }
+        .scroll-dot, .scroll-cue .chev, .discount-tag { animation: none; }
       }
     </style>
     <script is:inline>
@@ -466,9 +474,19 @@ const contactEmail = 'rania@hy-pro.co.uk'; // TODO: real contact email
       })();
 
       // Respect reduced-motion: pause the background hero video.
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        const v = document.querySelector('.hero video'); if (v) { v.removeAttribute('autoplay'); v.pause(); }
-      }
+      // Make sure the hero video autoplays on phones (iOS/Android need it muted and inline).
+      (() => {
+        const v = document.querySelector('.hero video'); if (!v) return;
+        v.muted = true; v.defaultMuted = true; v.playsInline = true;
+        v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
+        const tryPlay = () => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+        if (v.readyState >= 2) tryPlay(); else v.addEventListener('canplay', tryPlay, { once: true });
+        tryPlay();
+        // Fallback for browsers that block autoplay (e.g. iPhone Low Power Mode): start on first touch or scroll.
+        const kick = () => { if (v.paused) tryPlay(); };
+        ['touchstart', 'pointerdown', 'scroll'].forEach((e) => window.addEventListener(e, kick, { once: true, passive: true }));
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) kick(); });
+      })();
     </script>
   </body>
 </html>

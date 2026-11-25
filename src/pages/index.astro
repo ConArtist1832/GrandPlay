@@ -11,22 +11,23 @@ import moonTeam from '../assets/moon-team.jpg';
 const base = import.meta.env.BASE_URL;
 
 // ---- Content (edit here) -------------------------------------------------
+// Prices in whole pounds for sizes S, M, L, XL. "From" price is the S size.
 const products = [
-  { name: 'Giant Chess', img: chess, blurb: 'The classic battle of wits, now knee-high on the lawn.', price: 'Price TBC' },
-  { name: 'Giant Jenga', img: tower, blurb: 'Stack it tall, pull it carefully, and wait for the crash.', price: 'Price TBC' },
-  { name: 'Giant Connect Four', img: four, blurb: 'Drop, block and line up four before your rival does.', price: 'Price TBC' },
-  { name: 'Giant Bowling', img: bowling, blurb: 'Solid wooden pins for a strike on any patch of grass.', price: 'Price TBC' },
+  { id: 'chess', name: 'Giant Chess', img: chess, blurb: 'The classic battle of wits, now knee-high on the lawn.', prices: { S: 400, M: 550, L: 750, XL: 1000 } },
+  { id: 'jenga', name: 'Giant Jenga', img: tower, blurb: 'Stack it tall, pull it carefully, and wait for the crash.', prices: { S: 100, M: 140, L: 190, XL: 250 } },
+  { id: 'connect-four', name: 'Giant Connect Four', img: four, blurb: 'Drop, block and line up four before your rival does.', prices: { S: 150, M: 200, L: 270, XL: 350 } },
+  { id: 'bowling', name: 'Giant Bowling', img: bowling, blurb: 'Solid wooden pins for a strike on any patch of grass.', prices: { S: 60, M: 85, L: 115, XL: 150 } },
 ];
+const gbp = (n: number) => '£' + n.toLocaleString('en-GB');
 
 const occasions = ['Family gatherings', 'BBQs', 'Garden parties', 'Birthdays', 'Weddings', 'Festivals'];
 
 const benefits = [
   { title: 'Breaks the ice', text: 'A giant game gets everyone involved.' },
   { title: 'Creates memories', text: 'Experiences, not just games.' },
-  { title: 'Fun from 5 to 55', text: 'Every age loves friendly competition.' },
+  { title: 'Fun for all ages', text: 'Every age loves friendly competition.' },
 ];
 
-const shopUrl = '#contact';               // TODO: shop or pre-order link
 const contactEmail = 'hello@example.com'; // TODO: real contact email
 // --------------------------------------------------------------------------
 ---
@@ -50,12 +51,13 @@ const contactEmail = 'hello@example.com'; // TODO: real contact email
 
     <header class="nav">
       <a class="brand" href={base} aria-label="GrandPlay home">
-        <img src={`${base}logo-cream.png`} alt="" width="44" height="44" />
+        <img src={`${base}logo-cream.png`} alt="" class="logo-light" width="44" height="44" />
+        <img src={`${base}logo-green.png`} alt="" width="44" height="44" class="logo-dark" />
         <span>GrandPlay</span>
       </a>
       <nav aria-label="Main">
         <a class="pill pill-glass" href="#games">Games</a>
-        <a class="pill pill-glass" href={shopUrl}>Get yours <span aria-hidden="true">→</span></a>
+        <button type="button" class="pill pill-glass basket-btn" data-basket-open aria-label="Open basket">Basket <span class="basket-count" data-basket-count>0</span></button>
       </nav>
     </header>
 
@@ -67,10 +69,14 @@ const contactEmail = 'hello@example.com'; // TODO: real contact email
         </video>
         <div class="hero-shade" aria-hidden="true"></div>
         <h1>Think big.<br />Play big.</h1>
+        <a class="scroll-cue" href="#main-content">
+          <span>Scroll to explore</span>
+          <svg width="18" height="28" viewBox="0 0 18 28" aria-hidden="true"><rect x="1" y="1" width="16" height="26" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/><circle class="scroll-dot" cx="9" cy="8" r="2" fill="currentColor"/></svg>
+        </a>
       </section>
 
       <!-- Intro: heading + copy left, image right -->
-      <section class="wrap intro">
+      <section class="wrap intro" id="main-content">
         <div class="intro-text">
           <h2>Bringing people together outdoors</h2>
           <p>Our free time goes on screens, often alone. GrandPlay is a new range of giant garden and lawn games that gets people to put their phones down, get outside and have fun with real people.</p>
@@ -91,7 +97,23 @@ const contactEmail = 'hello@example.com'; // TODO: real contact email
               <h3><span class="num">{i + 1}</span>{p.name}</h3>
               <Image src={p.img} alt={p.name} widths={[320, 640]} sizes="(max-width: 800px) 92vw, 24vw" />
               <p>{p.blurb}</p>
-              <span class="price">{p.price}</span>
+              <p class="price">From {gbp(p.prices.S)}</p>
+              <button type="button" class="pill pill-solid order-btn" aria-expanded="false" aria-controls={`order-${p.id}`}>Order <span aria-hidden="true">→</span></button>
+              <form class="order" id={`order-${p.id}`} hidden data-product={p.id} data-name={p.name} data-prices={JSON.stringify(p.prices)}>
+                <fieldset>
+                  <legend>Choose a size</legend>
+                  <div class="sizes">
+                    {Object.entries(p.prices).map(([size, price], j) => (
+                      <label>
+                        <input type="radio" name="size" value={size} checked={j === 0} />
+                        <span><strong>{size}</strong>{gbp(price)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+                <button type="submit" class="pill pill-solid add-btn">Add to basket · <span data-line-price>{gbp(p.prices.S)}</span></button>
+                <p class="added" role="status" aria-live="polite"></p>
+              </form>
             </li>
           ))}
         </ol>
@@ -122,7 +144,7 @@ const contactEmail = 'hello@example.com'; // TODO: real contact email
             <li><h3><span class="num">{i + 1}</span>{b.title}</h3><p>{b.text}</p></li>
           ))}
         </ol>
-        <ul class="chips" aria-label="Occasions">{occasions.map((o) => <li>{o}</li>)}</ul>
+        <ul class="occasions" aria-label="Occasions">{occasions.map((o) => <li>{o}</li>)}</ul>
       </section>
 
       <!-- About HY-PRO -->
@@ -145,6 +167,21 @@ const contactEmail = 'hello@example.com'; // TODO: real contact email
         </div>
       </section>
     </main>
+
+    <div class="drawer-backdrop" data-basket-close hidden></div>
+    <aside class="drawer" id="basket" aria-label="Basket" aria-hidden="true" tabindex="-1">
+      <div class="drawer-head">
+        <h2>Your basket</h2>
+        <button type="button" class="close" data-basket-close aria-label="Close basket">×</button>
+      </div>
+      <ul class="lines" data-basket-lines></ul>
+      <p class="empty" data-basket-empty>Your basket is empty.</p>
+      <div class="drawer-foot" data-basket-foot hidden>
+        <p class="total"><span>Total</span><strong data-basket-total>£0</strong></p>
+        <a class="pill pill-solid checkout" data-basket-checkout href="#">Send order enquiry <span aria-hidden="true">→</span></a>
+        <p class="small">Online checkout is coming soon. For now this emails your order to our team and we'll confirm availability and delivery.</p>
+      </div>
+    </aside>
 
     <footer class="wrap footer">
       <p class="tagline">Think big. Play big.</p>
@@ -174,6 +211,7 @@ const contactEmail = 'hello@example.com'; // TODO: real contact email
       }
       * { box-sizing: border-box; }
       html { scroll-behavior: smooth; }
+      section[id] { scroll-margin-top: 80px; }
       body { margin: 0; background: var(--cream); color: var(--ink); font-family: 'Inter Tight', system-ui, -apple-system, sans-serif; font-size: 18px; line-height: 1.45; }
       img, video { max-width: 100%; display: block; }
       img { height: auto; }
@@ -235,8 +273,8 @@ const contactEmail = 'hello@example.com'; // TODO: real contact email
       .steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
       .steps li { border-left: 1px solid var(--rule); padding: 0 clamp(12px, 1.5vw, 24px) 48px; display: grid; gap: 14px; }
       .steps p { font-size: .95rem; color: var(--ink-soft); }
-      .chips { list-style: none; padding: 0; margin: 40px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
-      .chips li { border: 1px solid var(--ink); border-radius: 999px; padding: 6px 14px; font-size: .9rem; }
+      .occasions { list-style: none; padding: 0; margin: 40px 0 0; display: flex; flex-wrap: wrap; gap: 6px 0; font-size: 1.05rem; }
+      .occasions li:not(:last-child)::after { content: '·'; margin: 0 12px; color: var(--ink-soft); }
 
       /* About */
       .about { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 64px); align-items: center; }
@@ -261,6 +299,57 @@ const contactEmail = 'hello@example.com'; // TODO: real contact email
       .footer-row nav a:hover { color: var(--green); }
       .small { font-size: .8rem; color: var(--ink-soft); }
 
+      /* Scroll cue */
+      .scroll-cue { position: absolute; right: var(--gutter); bottom: clamp(24px, 5vw, 56px); display: flex; align-items: center; gap: 10px; color: var(--cream); text-decoration: none; font-size: .9rem; font-weight: 500; }
+      .scroll-dot { animation: scroll-dot 1.6s ease-in-out infinite; }
+      @keyframes scroll-dot { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(10px); opacity: 0; } 100% { transform: translateY(0); opacity: 0; } }
+
+      /* Ordering */
+      .price { font-size: 1rem; font-weight: 600; color: var(--wood); }
+      .game p.price { color: var(--wood); }
+      .order-btn { justify-self: start; border: 0; cursor: pointer; font-family: inherit; }
+      .order[hidden] { display: none; }
+      .order { display: grid; gap: 12px; padding-top: 4px; }
+      .order fieldset { border: 0; padding: 0; margin: 0; }
+      .order legend { font-size: .85rem; color: var(--ink-soft); margin-bottom: 8px; }
+      .sizes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+      .sizes label { cursor: pointer; }
+      .sizes input { position: absolute; opacity: 0; pointer-events: none; }
+      .sizes span { display: grid; gap: 2px; text-align: center; border: 1px solid var(--rule); border-radius: 10px; padding: 8px 4px; font-size: .8rem; color: var(--ink-soft); transition: border-color .15s, background .15s; }
+      .sizes strong { font-size: 1rem; color: var(--ink); font-weight: 600; }
+      .sizes input:checked + span { border-color: var(--green); background: rgb(46 94 64 / .08); color: var(--green); }
+      .sizes input:focus-visible + span { outline: 2px solid var(--green); outline-offset: 2px; }
+      .add-btn { border: 0; cursor: pointer; font-family: inherit; font-size: .95rem; justify-content: center; }
+      .added { font-size: .85rem; color: var(--green); min-height: 1.2em; }
+
+      /* Basket button + drawer */
+      .basket-btn { cursor: pointer; font-family: inherit; }
+      .basket-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--cream); color: var(--green-dark); font-size: .75rem; font-weight: 600; }
+      .nav.solid { position: fixed; background: var(--cream); box-shadow: 0 1px 0 var(--rule); }
+      .nav.solid .brand { color: var(--green); }
+      .logo-dark, .nav.solid .logo-light { display: none; }
+      .nav.solid .logo-dark { display: block; }
+      .nav.solid .pill-glass { color: var(--ink); border-color: var(--rule); background: transparent; }
+      .nav.solid .basket-count { background: var(--green); color: var(--cream); }
+      .drawer-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / .35); z-index: 40; }
+      .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); background: var(--cream); z-index: 50; transform: translateX(100%); transition: transform .25s ease; display: flex; flex-direction: column; padding: 20px var(--gutter); overflow-y: auto; }
+      .drawer.open { transform: none; box-shadow: -8px 0 32px rgb(0 0 0 / .15); }
+      .drawer-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+      .drawer-head h2 { font-size: 2rem; }
+      .close { background: none; border: 0; font-size: 2rem; line-height: 1; cursor: pointer; color: var(--ink); padding: 4px 8px; }
+      .lines { list-style: none; padding: 0; margin: 0; }
+      .lines li { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
+      .lines .meta { font-size: .85rem; color: var(--ink-soft); }
+      .qty { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+      .qty button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--rule); background: none; cursor: pointer; font-size: 1rem; color: var(--ink); }
+      .qty .remove { width: auto; height: auto; border-radius: 0; background: none; border: 0; color: var(--ink-soft); text-decoration: underline; cursor: pointer; font-size: .8rem; margin-left: 8px; font-family: inherit; }
+      .line-total { font-weight: 600; }
+      .empty { padding: 24px 0; color: var(--ink-soft); }
+      .drawer-foot { margin-top: auto; padding-top: 20px; display: grid; gap: 14px; }
+      .drawer-foot[hidden] { display: none; }
+      .total { display: flex; justify-content: space-between; font-size: 1.2rem; }
+      .checkout { justify-content: center; }
+
       @media (max-width: 900px) {
         .games { grid-template-columns: repeat(2, 1fr); row-gap: 40px; }
         .game:nth-child(2) { border-right: 1px solid var(--rule); }
@@ -273,13 +362,92 @@ const contactEmail = 'hello@example.com'; // TODO: real contact email
         .steps li { padding-bottom: 32px; }
         .game img { max-width: 280px; }
         .brand span { display: none; }
+        .scroll-cue span { display: none; }
       }
       @media (prefers-reduced-motion: reduce) {
         html { scroll-behavior: auto; }
-        .pill { transition: none; }
+        .pill, .drawer { transition: none; }
+        .scroll-dot { animation: none; }
       }
     </style>
     <script is:inline>
+      // ---- Client-side basket (no backend; saved in this browser only) ----
+      (() => {
+        const KEY = 'grandplay-basket';
+        const ORDER_EMAIL = 'hello@example.com'; // TODO: real orders email
+        const gbp = (n) => '£' + n.toLocaleString('en-GB');
+        let basket = [];
+        try { basket = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { basket = []; }
+        const save = () => { try { localStorage.setItem(KEY, JSON.stringify(basket)); } catch {} };
+
+        const $ = (s) => document.querySelector(s);
+        const drawer = $('#basket'), backdrop = $('.drawer-backdrop');
+        const linesEl = $('[data-basket-lines]'), emptyEl = $('[data-basket-empty]'), footEl = $('[data-basket-foot]');
+        const totalEl = $('[data-basket-total]'), countEl = $('[data-basket-count]'), checkoutEl = $('[data-basket-checkout]');
+
+        function render() {
+          const count = basket.reduce((n, l) => n + l.qty, 0);
+          const total = basket.reduce((n, l) => n + l.qty * l.price, 0);
+          countEl.textContent = count;
+          linesEl.innerHTML = '';
+          basket.forEach((l, i) => {
+            const li = document.createElement('li');
+            li.innerHTML = `<div><div>${l.name}</div><div class="meta">Size ${l.size} · ${gbp(l.price)} each</div>
+              <div class="qty"><button type="button" data-dec="${i}" aria-label="Decrease quantity">−</button><span>${l.qty}</span>
+              <button type="button" data-inc="${i}" aria-label="Increase quantity">+</button><button type="button" class="remove" data-rm="${i}">Remove</button></div></div>
+              <div class="line-total">${gbp(l.qty * l.price)}</div>`;
+            linesEl.appendChild(li);
+          });
+          emptyEl.hidden = basket.length > 0;
+          footEl.hidden = basket.length === 0;
+          totalEl.textContent = gbp(total);
+          const body = basket.map((l) => `${l.qty} x ${l.name} (${l.size}) @ ${gbp(l.price)} = ${gbp(l.qty * l.price)}`).join('\n') + `\n\nTotal: ${gbp(total)}\n\nName:\nDelivery postcode:\nPhone:`;
+          checkoutEl.href = `mailto:${ORDER_EMAIL}?subject=${encodeURIComponent('GrandPlay order enquiry')}&body=${encodeURIComponent(body)}`;
+        }
+
+        function open() { drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); backdrop.hidden = false; drawer.focus(); }
+        function close() { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); backdrop.hidden = true; }
+        document.querySelectorAll('[data-basket-open]').forEach((b) => b.addEventListener('click', open));
+        document.querySelectorAll('[data-basket-close]').forEach((b) => b.addEventListener('click', close));
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+        linesEl.addEventListener('click', (e) => {
+          const t = e.target.closest('button'); if (!t) return;
+          const i = +(t.dataset.inc ?? t.dataset.dec ?? t.dataset.rm);
+          if (t.dataset.inc !== undefined) basket[i].qty++;
+          else if (t.dataset.dec !== undefined) { basket[i].qty--; if (basket[i].qty < 1) basket.splice(i, 1); }
+          else if (t.dataset.rm !== undefined) basket.splice(i, 1);
+          save(); render();
+        });
+
+        // Order buttons reveal the size picker
+        document.querySelectorAll('.order-btn').forEach((btn) => btn.addEventListener('click', () => {
+          const form = document.getElementById(btn.getAttribute('aria-controls'));
+          const show = form.hidden; form.hidden = !show; btn.setAttribute('aria-expanded', String(show));
+        }));
+
+        document.querySelectorAll('form.order').forEach((form) => {
+          const prices = JSON.parse(form.dataset.prices);
+          const priceEl = form.querySelector('[data-line-price]'), status = form.querySelector('.added');
+          form.addEventListener('change', () => { priceEl.textContent = gbp(prices[form.size.value]); status.textContent = ''; });
+          form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const size = form.size.value, id = form.dataset.product;
+            const line = basket.find((l) => l.id === id && l.size === size);
+            if (line) line.qty++; else basket.push({ id, name: form.dataset.name, size, price: prices[size], qty: 1 });
+            save(); render();
+            status.innerHTML = `Added size ${size}. <a href="#basket" data-basket-open>View basket</a>`;
+            status.querySelector('a').addEventListener('click', (ev) => { ev.preventDefault(); open(); });
+          });
+        });
+
+        // Solid nav once past the hero, so the basket stays reachable
+        const nav = $('.nav'), hero = $('.hero');
+        new IntersectionObserver(([en]) => nav.classList.toggle('solid', !en.isIntersecting), { rootMargin: '-80px 0px 0px 0px' }).observe(hero);
+
+        render();
+      })();
+
       // Respect reduced-motion: pause the background hero video.
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         const v = document.querySelector('.hero video'); if (v) { v.removeAttribute('autoplay'); v.pause(); }
